@@ -3,12 +3,12 @@ import UIKit
 /*
     Sample Initialization
 
-    fsm.From(State.Locked)
-            .GoTo(State.UnLocked, on: Action.InsertCoin)
-            .GoTo(State.Locked, on: Action.Push)
-        .From(State.UnLocked)
-            .GoTo(State.Locked, on: Action.Push)
-            .GoTo(State.UnLocked, on: Action.InsertCoin)
+    fsm.from(State.Locked)
+            .goTo(State.UnLocked, on: Action.InsertCoin)
+            .goTo(State.Locked, on: Action.Push)
+        .from(State.UnLocked)
+            .goTo(State.Locked, on: Action.Push)
+            .goTo(State.UnLocked, on: Action.InsertCoin)
 */
 
 public class FiniteStateMachine<State: Hashable, Action: Equatable> {
