@@ -11,106 +11,98 @@ import UIKit
             .GoTo(State.UnLocked, on: Action.InsertCoin)
 */
 
-public class FiniteStateMachine<S: Hashable, A: Hashable>
-{
-    private var currentState: S
-    private var transitionMap = [S:StateTransition<S, A>]()
+public class FiniteStateMachine<State: Hashable, Action: Equatable> {
+    private var currentState: State
+    private var transitionMap = [State:StateTransition<State, Action>]()
     
-    init(cs: S){
-        currentState = cs
+    init(currentState: State) {
+        self.currentState = currentState
     }
     
-    public func From(fromState: S) -> StateTransition<S,A>
-    {
-        transitionMap[fromState] = StateTransition(sm: self)
+    public func from(fromState: State) -> StateTransition<State,Action> {
+        transitionMap[fromState] = StateTransition(stateMachine: self)
         return transitionMap[fromState]!
     }
     
-    public func Fire(action: A, delegate: ())
-    {
+    public func fire(action: Action, delegate: ()->()) {
         // Check if valid transition can happen and fire the event
         let possibleToStates = transitionMap[currentState]
         for item in (possibleToStates!.toStateMap){
             if item.1 == action
             {
-                delegate
+                delegate()
                 currentState = item.0
             }
         }
     }
 }
 
-public class StateTransition<S: Hashable, A: Hashable>
-{
-    private var toStateMap = [S:A]()
-    weak var stateMachine : FiniteStateMachine<S, A>?
+public class StateTransition<State: Hashable, Action: Equatable> {
+    private var toStateMap = [State:Action]()
+    weak var stateMachine : FiniteStateMachine<State, Action>?
     
-    init(sm: FiniteStateMachine<S,A>)
-    {
-        stateMachine = sm
+    init(stateMachine: FiniteStateMachine<State,Action>) {
+        self.stateMachine = stateMachine
     }
     
-    public func GoTo(toState: S, on: A) -> StateTransition<S,A>
-    {
+    public func goTo(toState: State, on: Action) -> StateTransition<State,Action> {
         toStateMap[toState] = on
         return self
     }
     
-    public func From(fs: S) -> StateTransition<S,A>
-    {
-        return stateMachine!.From(fs)
+    public func from(fromState: State) -> StateTransition<State,Action> {
+        return stateMachine!.from(fromState)
     }
 }
 
-public class TurnsTile
-{
+public class TurnsTile {
+    
     // Possible States
-    enum State{
+    enum State {
         case Locked
         case UnLocked
     }
   
     // Possible Actions
-    enum Action{
+    enum Action {
         case InsertCoin
         case Push
     }
     
-    private var fsm = FiniteStateMachine<State, Action>(cs: State.Locked)
+    private var fsm = FiniteStateMachine<State, Action>(currentState: State.Locked)
 
-    init(){
-        fsm.From(State.Locked)
-            .GoTo(State.UnLocked, on: Action.InsertCoin)
-            .GoTo(State.Locked, on: Action.Push)
-            .From(State.UnLocked)
-            .GoTo(State.Locked, on: Action.Push)
-            .GoTo(State.UnLocked, on: Action.InsertCoin)
+    init() {
+        fsm.from(State.Locked)
+                .goTo(State.UnLocked, on: Action.InsertCoin)
+                .goTo(State.Locked, on: Action.Push)
+            .from(State.UnLocked)
+                .goTo(State.Locked, on: Action.Push)
+                .goTo(State.UnLocked, on: Action.InsertCoin)
     }
     
-    func GetCurrentState() -> State{
+    func getCurrentState() -> State {
         return fsm.currentState
     }
     
-    func InsertCoin(){
-        fsm.Fire(Action.InsertCoin, delegate: { print("Coin Inserted...") }())
+    func insertCoin() {
+        fsm.fire(Action.InsertCoin, delegate: { print("Coin Inserted...") })
     }
     
-    func Push(){
-        fsm.Fire(Action.Push, delegate: { print("Push TurnsTile...")}())
+    func push() {
+        fsm.fire(Action.InsertCoin, delegate: { print("Turnstile Pushed...") })
     }
-    
 }
 
 
 var turnsTile = TurnsTile()
-print(turnsTile.GetCurrentState())
-turnsTile.InsertCoin()
-print(turnsTile.GetCurrentState())
-turnsTile.Push()
-print(turnsTile.GetCurrentState())
-turnsTile.Push()
-print(turnsTile.GetCurrentState())
-turnsTile.InsertCoin()
-print(turnsTile.GetCurrentState())
+print(turnsTile.getCurrentState())
+turnsTile.insertCoin()
+print(turnsTile.getCurrentState())
+turnsTile.push()
+print(turnsTile.getCurrentState())
+turnsTile.push()
+print(turnsTile.getCurrentState())
+turnsTile.insertCoin()
+print(turnsTile.getCurrentState())
 
 
